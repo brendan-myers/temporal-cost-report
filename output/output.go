@@ -107,6 +107,8 @@ func PrintTable(r *report.Report) {
 
 	table.Render()
 	fmt.Println()
+	fmt.Println("* Costs are estimates based on the provided pricing and may differ from actual invoiced amounts.")
+	fmt.Println()
 }
 
 // PrintJSON outputs the report as formatted JSON.
