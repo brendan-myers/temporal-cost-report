@@ -1,4 +1,4 @@
-# tcost - Temporal Cloud Cost Report
+# temporal-cost-report
 
 A command-line tool that fetches usage data from Temporal Cloud and generates cost reports per namespace. Designed for platform teams that want to charge back Temporal Cloud costs to individual teams.
 
@@ -21,7 +21,7 @@ Or build from source:
 ```bash
 git clone https://github.com/brendan-myers/temporal-cost-report.git
 cd temporal-cost-report
-go build -o tcost .
+go build -o temporal-cost-report .
 ```
 
 ## Prerequisites
@@ -35,7 +35,7 @@ export TEMPORAL_API_KEY=your-api-key-here
 
 2. Pass it as a command-line argument:
 ```bash
-tcost --api-key your-api-key-here
+temporal-cost-report --api-key your-api-key-here
 ```
 
 To create an API key, see the [Temporal Cloud documentation](https://docs.temporal.io/cloud/api-keys).
@@ -44,19 +44,19 @@ To create an API key, see the [Temporal Cloud documentation](https://docs.tempor
 
 ```bash
 # Generate report for current month (default)
-tcost
+temporal-cost-report
 
 # Specify a custom date range
-tcost --start-date 2025-12-01 --end-date 2025-12-31
+temporal-cost-report --start-date 2025-12-01 --end-date 2025-12-31
 
 # Output as JSON
-tcost --format json
+temporal-cost-report --format json
 
 # Use custom pricing
-tcost --action-price 30 --active-storage-price 0.05 --retained-storage-price 0.001
+temporal-cost-report --action-price 30 --active-storage-price 0.05 --retained-storage-price 0.001
 
 # Pass API key directly
-tcost --api-key your-api-key-here
+temporal-cost-report --api-key your-api-key-here
 ```
 
 ## Flags

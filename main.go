@@ -29,7 +29,7 @@ var (
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:   "tcost",
+		Use:   "temporal-cost-report",
 		Short: "Generate cost reports from Temporal Cloud usage data",
 		Long: `A CLI tool that fetches usage data from Temporal Cloud and generates
 cost reports per namespace for platform team chargebacks.
