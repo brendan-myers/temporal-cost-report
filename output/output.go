@@ -7,6 +7,7 @@ import (
 
 	"github.com/brendan-myers/temporal-cost-report/report"
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/tw"
 )
 
 // PrintTable outputs the report as a formatted ASCII table.
@@ -36,6 +37,36 @@ func PrintTable(r *report.Report) {
 
 	table := tablewriter.NewTable(os.Stdout,
 		tablewriter.WithHeader(headers),
+		tablewriter.WithRowAlignmentConfig(tw.CellAlignment{
+			PerColumn: []tw.Align{
+				tw.AlignLeft,  // Namespace
+				tw.AlignRight, // Actions
+				tw.AlignRight, // Action Cost
+				tw.AlignRight, // Actions %
+				tw.AlignRight, // Active (GBh)
+				tw.AlignRight, // Active Cost
+				tw.AlignRight, // Active %
+				tw.AlignRight, // Retained (GBh)
+				tw.AlignRight, // Retained Cost
+				tw.AlignRight, // Retained %
+				tw.AlignRight, // Total Cost
+			},
+		}),
+		tablewriter.WithFooterAlignmentConfig(tw.CellAlignment{
+			PerColumn: []tw.Align{
+				tw.AlignLeft,  // TOTAL label
+				tw.AlignRight, // Actions
+				tw.AlignRight, // Action Cost
+				tw.AlignRight, // Actions %
+				tw.AlignRight, // Active (GBh)
+				tw.AlignRight, // Active Cost
+				tw.AlignRight, // Active %
+				tw.AlignRight, // Retained (GBh)
+				tw.AlignRight, // Retained Cost
+				tw.AlignRight, // Retained %
+				tw.AlignRight, // Total Cost
+			},
+		}),
 	)
 
 	for _, ns := range r.Namespaces {
