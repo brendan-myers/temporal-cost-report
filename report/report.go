@@ -15,14 +15,17 @@ type Pricing struct {
 
 // NamespaceUsage holds aggregated usage data for a single namespace.
 type NamespaceUsage struct {
-	Name              string  `json:"name"`
-	Actions           float64 `json:"actions"`
-	ActiveStorageGBh  float64 `json:"activeStorageGBh"`
-	RetainedStorageGBh float64 `json:"retainedStorageGBh"`
-	ActionCost        float64 `json:"actionCost"`
-	ActiveStorageCost float64 `json:"activeStorageCost"`
-	RetainedStorageCost float64 `json:"retainedStorageCost"`
-	TotalCost         float64 `json:"totalCost"`
+	Name                   string  `json:"name"`
+	Actions                float64 `json:"actions"`
+	ActionsPercent         float64 `json:"actionsPercent"`
+	ActiveStorageGBh       float64 `json:"activeStorageGBh"`
+	ActiveStoragePercent   float64 `json:"activeStoragePercent"`
+	RetainedStorageGBh     float64 `json:"retainedStorageGBh"`
+	RetainedStoragePercent float64 `json:"retainedStoragePercent"`
+	ActionCost             float64 `json:"actionCost"`
+	ActiveStorageCost      float64 `json:"activeStorageCost"`
+	RetainedStorageCost    float64 `json:"retainedStorageCost"`
+	TotalCost              float64 `json:"totalCost"`
 }
 
 // Totals holds aggregated totals across all namespaces.
@@ -93,6 +96,19 @@ func Generate(summaries []models.Summary, pricing Pricing, startDate, endDate st
 		totals.ActionCost += usage.ActionCost
 		totals.StorageCost += usage.ActiveStorageCost + usage.RetainedStorageCost
 		totals.TotalCost += usage.TotalCost
+	}
+
+	// Calculate percentages
+	for i := range namespaces {
+		if totals.Actions > 0 {
+			namespaces[i].ActionsPercent = (namespaces[i].Actions / totals.Actions) * 100
+		}
+		if totals.ActiveStorageGBh > 0 {
+			namespaces[i].ActiveStoragePercent = (namespaces[i].ActiveStorageGBh / totals.ActiveStorageGBh) * 100
+		}
+		if totals.RetainedStorageGBh > 0 {
+			namespaces[i].RetainedStoragePercent = (namespaces[i].RetainedStorageGBh / totals.RetainedStorageGBh) * 100
+		}
 	}
 
 	// Sort namespaces by name for consistent output

@@ -23,8 +23,11 @@ func PrintTable(r *report.Report) {
 	headers := []string{
 		"Namespace",
 		"Actions",
+		"Actions %",
 		"Active (GBh)",
+		"Active %",
 		"Retained (GBh)",
+		"Retained %",
 		"Action Cost",
 		"Storage Cost",
 		"Total Cost",
@@ -39,8 +42,11 @@ func PrintTable(r *report.Report) {
 		table.Append([]string{
 			ns.Name,
 			formatNumber(ns.Actions),
+			formatPercent(ns.ActionsPercent),
 			fmt.Sprintf("%.2f", ns.ActiveStorageGBh),
+			formatPercent(ns.ActiveStoragePercent),
 			fmt.Sprintf("%.2f", ns.RetainedStorageGBh),
+			formatPercent(ns.RetainedStoragePercent),
 			formatCurrency(ns.ActionCost),
 			formatCurrency(storageCost),
 			formatCurrency(ns.TotalCost),
@@ -51,8 +57,11 @@ func PrintTable(r *report.Report) {
 	table.Footer(
 		"TOTAL",
 		formatNumber(r.Totals.Actions),
+		"100.00%",
 		fmt.Sprintf("%.2f", r.Totals.ActiveStorageGBh),
+		"100.00%",
 		fmt.Sprintf("%.2f", r.Totals.RetainedStorageGBh),
+		"100.00%",
 		formatCurrency(r.Totals.ActionCost),
 		formatCurrency(r.Totals.StorageCost),
 		formatCurrency(r.Totals.TotalCost),
@@ -84,4 +93,8 @@ func formatNumber(n float64) string {
 
 func formatCurrency(amount float64) string {
 	return fmt.Sprintf("$%.2f", amount)
+}
+
+func formatPercent(pct float64) string {
+	return fmt.Sprintf("%.2f%%", pct)
 }
