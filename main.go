@@ -92,7 +92,9 @@ func run(cmd *cobra.Command, args []string) error {
 		RetainedStoragePricePerGBh: retainedStoragePrice,
 	}
 
-	r := report.Generate(summaries, pricing, start.Format("2006-01-02"), end.Format("2006-01-02"))
+	// Subtract one day from end for display (API uses exclusive end, report shows inclusive)
+	displayEnd := end.AddDate(0, 0, -1)
+	r := report.Generate(summaries, pricing, start.Format("2006-01-02"), displayEnd.Format("2006-01-02"))
 
 	// Output report
 	switch outputFormat {
