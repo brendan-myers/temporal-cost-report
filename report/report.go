@@ -50,8 +50,7 @@ type Period struct {
 }
 
 // Generate creates a cost report from usage summaries.
-// If showAll is false, namespaces with zero total cost are excluded.
-func Generate(summaries []models.Summary, pricing Pricing, startDate, endDate string, showAll bool) *Report {
+func Generate(summaries []models.Summary, pricing Pricing, startDate, endDate string) *Report {
 	// Aggregate usage by namespace
 	namespaceData := make(map[string]*namespaceAggregator)
 
@@ -86,12 +85,6 @@ func Generate(summaries []models.Summary, pricing Pricing, startDate, endDate st
 
 	for name, agg := range namespaceData {
 		usage := calculateNamespaceUsage(name, agg, pricing)
-
-		// Skip namespaces with zero cost unless showAll is true
-		if !showAll && usage.TotalCost == 0 {
-			continue
-		}
-
 		namespaces = append(namespaces, usage)
 
 		totals.Actions += usage.Actions

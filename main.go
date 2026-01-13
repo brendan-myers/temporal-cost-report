@@ -23,9 +23,8 @@ var (
 	actionPrice          float64
 	activeStoragePrice   float64
 	retainedStoragePrice float64
-	outputFormat         string
-	apiKey               string
-	showAll              bool
+	outputFormat string
+	apiKey       string
 )
 
 func main() {
@@ -53,9 +52,6 @@ The tool reads the TEMPORAL_API_KEY environment variable for authentication.`,
 
 	// API key flag
 	rootCmd.Flags().StringVar(&apiKey, "api-key", "", "Temporal Cloud API key (defaults to TEMPORAL_API_KEY env var)")
-
-	// Show all namespaces flag
-	rootCmd.Flags().BoolVar(&showAll, "show-all", false, "Show all namespaces, including those with zero usage")
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
@@ -93,7 +89,7 @@ func run(cmd *cobra.Command, args []string) error {
 		RetainedStoragePricePerGBh: retainedStoragePrice,
 	}
 
-	r := report.Generate(summaries, pricing, start.Format("2006-01-02"), end.Format("2006-01-02"), showAll)
+	r := report.Generate(summaries, pricing, start.Format("2006-01-02"), end.Format("2006-01-02"))
 
 	// Output report
 	switch outputFormat {

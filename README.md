@@ -55,9 +55,6 @@ tcost --format json
 # Use custom pricing
 tcost --action-price 30 --active-storage-price 0.05 --retained-storage-price 0.001
 
-# Show all namespaces, including those with zero cost
-tcost --show-all
-
 # Pass API key directly
 tcost --api-key your-api-key-here
 ```
@@ -73,7 +70,6 @@ tcost --api-key your-api-key-here
 | `--active-storage-price` | float | 0.042 | Price per GBh of active storage (USD) |
 | `--retained-storage-price` | float | 0.00105 | Price per GBh of retained storage (USD) |
 | `--format` | string | table | Output format: `table` or `json` |
-| `--show-all` | bool | false | Show all namespaces, including those with zero cost |
 
 ## Output Examples
 
