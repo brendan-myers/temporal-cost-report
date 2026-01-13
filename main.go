@@ -38,6 +38,9 @@ The tool reads the TEMPORAL_API_KEY environment variable for authentication.`,
 		RunE: run,
 	}
 
+	// Disable alphabetical sorting of flags
+	rootCmd.Flags().SortFlags = false
+
 	// Date range flags
 	rootCmd.Flags().StringVar(&startDate, "start-date", "", "Start date in YYYY-MM-DD format (default: first day of current month)")
 	rootCmd.Flags().StringVar(&endDate, "end-date", "", "End date in YYYY-MM-DD format (default: today)")
