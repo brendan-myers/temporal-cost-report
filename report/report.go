@@ -30,12 +30,13 @@ type NamespaceUsage struct {
 
 // Totals holds aggregated totals across all namespaces.
 type Totals struct {
-	Actions            float64 `json:"actions"`
-	ActiveStorageGBh   float64 `json:"activeStorageGBh"`
-	RetainedStorageGBh float64 `json:"retainedStorageGBh"`
-	ActionCost         float64 `json:"actionCost"`
-	StorageCost        float64 `json:"storageCost"`
-	TotalCost          float64 `json:"totalCost"`
+	Actions             float64 `json:"actions"`
+	ActiveStorageGBh    float64 `json:"activeStorageGBh"`
+	RetainedStorageGBh  float64 `json:"retainedStorageGBh"`
+	ActionCost          float64 `json:"actionCost"`
+	ActiveStorageCost   float64 `json:"activeStorageCost"`
+	RetainedStorageCost float64 `json:"retainedStorageCost"`
+	TotalCost           float64 `json:"totalCost"`
 }
 
 // Report contains the complete cost report data.
@@ -94,7 +95,8 @@ func Generate(summaries []models.Summary, pricing Pricing, startDate, endDate st
 		totals.ActiveStorageGBh += usage.ActiveStorageGBh
 		totals.RetainedStorageGBh += usage.RetainedStorageGBh
 		totals.ActionCost += usage.ActionCost
-		totals.StorageCost += usage.ActiveStorageCost + usage.RetainedStorageCost
+		totals.ActiveStorageCost += usage.ActiveStorageCost
+		totals.RetainedStorageCost += usage.RetainedStorageCost
 		totals.TotalCost += usage.TotalCost
 	}
 

@@ -26,10 +26,11 @@ func PrintTable(r *report.Report) {
 		"Action Cost",
 		"Actions %",
 		"Active (GBh)",
+		"Active Cost",
 		"Active %",
 		"Retained (GBh)",
+		"Retained Cost",
 		"Retained %",
-		"Storage Cost",
 		"Total Cost",
 	}
 
@@ -38,17 +39,17 @@ func PrintTable(r *report.Report) {
 	)
 
 	for _, ns := range r.Namespaces {
-		storageCost := ns.ActiveStorageCost + ns.RetainedStorageCost
 		table.Append([]string{
 			ns.Name,
 			formatNumber(ns.Actions),
 			formatCurrency(ns.ActionCost),
 			formatPercent(ns.ActionsPercent),
 			fmt.Sprintf("%.2f", ns.ActiveStorageGBh),
+			formatCurrency(ns.ActiveStorageCost),
 			formatPercent(ns.ActiveStoragePercent),
 			fmt.Sprintf("%.2f", ns.RetainedStorageGBh),
+			formatCurrency(ns.RetainedStorageCost),
 			formatPercent(ns.RetainedStoragePercent),
-			formatCurrency(storageCost),
 			formatCurrency(ns.TotalCost),
 		})
 	}
@@ -60,10 +61,11 @@ func PrintTable(r *report.Report) {
 		formatCurrency(r.Totals.ActionCost),
 		"100.00%",
 		fmt.Sprintf("%.2f", r.Totals.ActiveStorageGBh),
+		formatCurrency(r.Totals.ActiveStorageCost),
 		"100.00%",
 		fmt.Sprintf("%.2f", r.Totals.RetainedStorageGBh),
+		formatCurrency(r.Totals.RetainedStorageCost),
 		"100.00%",
-		formatCurrency(r.Totals.StorageCost),
 		formatCurrency(r.Totals.TotalCost),
 	)
 
