@@ -69,7 +69,7 @@ tcost --api-key your-api-key-here
 | `--api-key` | string | | Temporal Cloud API key (defaults to `TEMPORAL_API_KEY` env var) |
 | `--start-date` | string | First day of current month | Start date (YYYY-MM-DD format) |
 | `--end-date` | string | Today | End date (YYYY-MM-DD format) |
-| `--action-price` | float | 25.0 | Price per million actions (USD) |
+| `--action-price` | float | 50.0 | Price per million actions (USD) |
 | `--active-storage-price` | float | 0.042 | Price per GBh of active storage (USD) |
 | `--retained-storage-price` | float | 0.00105 | Price per GBh of retained storage (USD) |
 | `--format` | string | table | Output format: `table` or `json` |
@@ -82,7 +82,7 @@ tcost --api-key your-api-key-here
 ```
 Temporal Cloud Usage Report
 Period: 2026-01-01 to 2026-01-14
-Pricing: $25.00/M actions, $0.0420/GBh active, $0.00105/GBh retained
+Pricing: $50.00/M actions, $0.0420/GBh active, $0.00105/GBh retained
 
 ┌─────────────────────────┬─────────┬──────────────┬────────────────┬─────────────┬──────────────┬────────────┐
 │ NAMESPACE               │ ACTIONS │ ACTIVE (GBh) │ RETAINED (GBh) │ ACTION COST │ STORAGE COST │ TOTAL COST │
@@ -104,7 +104,7 @@ Pricing: $25.00/M actions, $0.0420/GBh active, $0.00105/GBh retained
     "end": "2026-01-14"
   },
   "pricing": {
-    "actionPricePerMillion": 25,
+    "actionPricePerMillion": 50,
     "activeStoragePricePerGBh": 0.042,
     "retainedStoragePricePerGBh": 0.00105
   },
@@ -135,7 +135,7 @@ Pricing: $25.00/M actions, $0.0420/GBh active, $0.00105/GBh retained
 
 Default prices are based on Temporal Cloud's published rates:
 
-- **Actions**: $25 per million (flat rate for simplicity; actual Temporal pricing is tiered)
+- **Actions**: $50 per million (base rate; actual Temporal pricing is tiered with volume discounts)
 - **Active Storage**: $0.042 per GBh
 - **Retained Storage**: $0.00105 per GBh
 

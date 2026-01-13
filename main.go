@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultActionPrice          = 25.0
+	defaultActionPrice          = 50.0
 	defaultActiveStoragePrice   = 0.042
 	defaultRetainedStoragePrice = 0.00105
 )
