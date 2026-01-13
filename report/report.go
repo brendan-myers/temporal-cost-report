@@ -26,6 +26,7 @@ type NamespaceUsage struct {
 	ActiveStorageCost      float64 `json:"activeStorageCost"`
 	RetainedStorageCost    float64 `json:"retainedStorageCost"`
 	TotalCost              float64 `json:"totalCost"`
+	TotalCostPercent       float64 `json:"totalCostPercent"`
 }
 
 // Totals holds aggregated totals across all namespaces.
@@ -110,6 +111,9 @@ func Generate(summaries []models.Summary, pricing Pricing, startDate, endDate st
 		}
 		if totals.RetainedStorageGBh > 0 {
 			namespaces[i].RetainedStoragePercent = (namespaces[i].RetainedStorageGBh / totals.RetainedStorageGBh) * 100
+		}
+		if totals.TotalCost > 0 {
+			namespaces[i].TotalCostPercent = (namespaces[i].TotalCost / totals.TotalCost) * 100
 		}
 	}
 

@@ -33,6 +33,7 @@ func PrintTable(r *report.Report) {
 		"Retained Cost",
 		"Retained %",
 		"Total Cost",
+		"Total %",
 	}
 
 	table := tablewriter.NewTable(os.Stdout,
@@ -50,6 +51,7 @@ func PrintTable(r *report.Report) {
 				tw.AlignRight, // Retained Cost
 				tw.AlignRight, // Retained %
 				tw.AlignRight, // Total Cost
+				tw.AlignRight, // Total %
 			},
 		}),
 		tablewriter.WithFooterAlignmentConfig(tw.CellAlignment{
@@ -65,6 +67,7 @@ func PrintTable(r *report.Report) {
 				tw.AlignRight, // Retained Cost
 				tw.AlignRight, // Retained %
 				tw.AlignRight, // Total Cost
+				tw.AlignRight, // Total %
 			},
 		}),
 	)
@@ -82,6 +85,7 @@ func PrintTable(r *report.Report) {
 			formatCurrency(ns.RetainedStorageCost),
 			formatPercent(ns.RetainedStoragePercent),
 			formatCurrency(ns.TotalCost),
+			formatPercent(ns.TotalCostPercent),
 		})
 	}
 
@@ -98,6 +102,7 @@ func PrintTable(r *report.Report) {
 		formatCurrency(r.Totals.RetainedStorageCost),
 		"100.00%",
 		formatCurrency(r.Totals.TotalCost),
+		"100.00%",
 	)
 
 	table.Render()
