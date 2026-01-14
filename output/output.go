@@ -26,8 +26,8 @@ func PrintTable(r *report.Report) {
 	headers := []string{
 		"Namespace",
 		"Count", "Cost", "%",
-		"GBh", "Cost", "%",
-		"GBh", "Cost", "%",
+		"GBH", "Cost", "%",
+		"GBH", "Cost", "%",
 		"Cost", "%",
 	}
 
