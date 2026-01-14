@@ -1,6 +1,6 @@
 # temporal-cost-report
 
-A command-line tool that fetches usage data from Temporal Cloud and generates cost reports per namespace. Designed for platform teams that want to charge back Temporal Cloud costs to individual teams.
+A command-line tool that fetches usage data from Temporal Cloud and generates cost reports per namespace.
 
 ## Features
 
