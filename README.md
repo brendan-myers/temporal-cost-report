@@ -6,6 +6,7 @@ A command-line tool that fetches usage data from Temporal Cloud and generates co
 
 - Fetches usage data from the Temporal Cloud API
 - Aggregates costs by namespace
+- Estimates per-workflow-type costs by analyzing workflow histories
 - Configurable pricing for actions, active storage, and retained storage
 - Supports table and JSON output formats
 - Flexible date range selection
@@ -135,6 +136,99 @@ Pricing: $50.00/M actions, $0.0420/GBh active, $0.00105/GBh retained
   }
 }
 ```
+
+## Workflow Cost Estimation
+
+The `workflow-cost` subcommand analyzes completed workflow executions to estimate the average cost per workflow type.
+
+### Usage
+
+```bash
+# Analyze a workflow type
+temporal-cost-report workflow-cost \
+  --type MyWorkflow \
+  --namespace my-namespace.abc123 \
+  --address my-namespace.abc123.tmprl.cloud:7233
+
+# Sample more workflows
+temporal-cost-report workflow-cost \
+  --type OrderProcessingWorkflow \
+  --namespace prod.abc123 \
+  --address prod.abc123.tmprl.cloud:7233 \
+  --limit 500
+
+# Output as JSON
+temporal-cost-report workflow-cost \
+  --type MyWorkflow \
+  --namespace my-namespace.abc123 \
+  --address my-namespace.abc123.tmprl.cloud:7233 \
+  --format json
+```
+
+### Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--type` | string | (required) | Workflow type name to analyze |
+| `--namespace` | string | (required) | Full namespace (e.g., `my-namespace.abc123`) |
+| `--address` | string | (required) | Temporal Cloud address (e.g., `my-namespace.abc123.tmprl.cloud:7233`) |
+| `--api-key` | string | | Temporal Cloud API key (defaults to `TEMPORAL_API_KEY` env var) |
+| `--action-price` | float | 50.0 | Price per million actions (USD) |
+| `--limit` | int | 100 | Maximum workflow executions to sample |
+| `--format` | string | table | Output format: `table` or `json` |
+
+### Output Example
+
+```
+Workflow Cost Analysis
+Type: OrderProcessingWorkflow
+Namespace: prod.abc123
+Sample: 100 executions (2026-01-01 to 2026-01-18)
+Pricing: $50.00/M actions
+
+┌──────────────────────┬──────────┐
+│ Metric               │    Value │
+├──────────────────────┼──────────┤
+│ Min Actions/Exec     │       32 │
+│ Max Actions/Exec     │       67 │
+│ Avg Actions/Exec     │     47.3 │
+│ Avg Cost/Exec        │$0.002365 │
+│ Executions Sampled   │      100 │
+│ Sample Period (days) │     17.0 │
+│ Est. Monthly Execs   │      176 │
+│ Est. Monthly Cost    │   $0.42  │
+└──────────────────────┴──────────┘
+
+Action Breakdown (avg per execution):
+┌─────────────────────┬───────┬─────────┐
+│ Event Type          │ Count │ Actions │
+├─────────────────────┼───────┼─────────┤
+│ Workflow Starts     │   1.0 │     1.0 │
+│ Activities          │  12.5 │    12.5 │
+│ Timers              │   3.2 │     3.2 │
+│ Signals             │   0.8 │     0.8 │
+│ Child Workflows     │   2.0 │     4.0 │
+├─────────────────────┼───────┼─────────┤
+│ TOTAL               │       │    47.3 │
+└─────────────────────┴───────┴─────────┘
+
+* Costs are estimates based on sampled data and may differ from actual invoiced amounts.
+```
+
+### Billable Actions
+
+The tool counts the following history events as billable actions per [Temporal Cloud pricing](https://docs.temporal.io/cloud/actions):
+
+| Event | Actions |
+|-------|---------|
+| Workflow start | 1 |
+| Activity scheduled | 1 (including retries) |
+| Timer started | 1 |
+| Signal received | 1 |
+| Child workflow started | 2 |
+| Update accepted | 1 |
+| Search attribute upsert | 1 |
+| Side effect | 1 |
 
 ## Pricing
 

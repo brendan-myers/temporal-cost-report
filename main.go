@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -8,6 +9,7 @@ import (
 	"github.com/brendan-myers/temporal-cost-report/client"
 	"github.com/brendan-myers/temporal-cost-report/output"
 	"github.com/brendan-myers/temporal-cost-report/report"
+	"github.com/brendan-myers/temporal-cost-report/workflow"
 	"github.com/spf13/cobra"
 )
 
@@ -23,8 +25,16 @@ var (
 	actionPrice          float64
 	activeStoragePrice   float64
 	retainedStoragePrice float64
-	outputFormat string
-	apiKey       string
+	outputFormat         string
+	apiKey               string
+)
+
+// Workflow cost command variables
+var (
+	workflowType      string
+	workflowNamespace string
+	workflowAddress   string
+	workflowLimit     int
 )
 
 func main() {
@@ -55,6 +65,34 @@ The tool reads the TEMPORAL_API_KEY environment variable for authentication.`,
 
 	// API key flag
 	rootCmd.Flags().StringVar(&apiKey, "api-key", "", "Temporal Cloud API key (defaults to TEMPORAL_API_KEY env var)")
+
+	// Workflow cost subcommand
+	workflowCostCmd := &cobra.Command{
+		Use:   "workflow-cost",
+		Short: "Estimate cost per workflow type by analyzing workflow histories",
+		Long: `Analyze completed workflow executions of a specific type to estimate
+the average cost per execution and projected monthly costs.
+
+This command connects to Temporal Cloud using the Go SDK, fetches workflow
+histories, and counts billable actions (workflow starts, activities, timers,
+signals, child workflows, etc.) to calculate costs.`,
+		RunE: runWorkflowCost,
+	}
+
+	workflowCostCmd.Flags().SortFlags = false
+	workflowCostCmd.Flags().StringVar(&workflowType, "type", "", "Workflow type name to analyze (required)")
+	workflowCostCmd.Flags().StringVar(&workflowNamespace, "namespace", "", "Full namespace (e.g., my-namespace.abc123) (required)")
+	workflowCostCmd.Flags().StringVar(&workflowAddress, "address", "", "Temporal Cloud address (e.g., my-namespace.abc123.tmprl.cloud:7233) (required)")
+	workflowCostCmd.Flags().StringVar(&apiKey, "api-key", "", "Temporal Cloud API key (defaults to TEMPORAL_API_KEY env var)")
+	workflowCostCmd.Flags().Float64Var(&actionPrice, "action-price", defaultActionPrice, "Price per million actions (USD)")
+	workflowCostCmd.Flags().IntVar(&workflowLimit, "limit", 100, "Max workflow executions to sample")
+	workflowCostCmd.Flags().StringVar(&outputFormat, "format", "table", "Output format: table or json")
+
+	workflowCostCmd.MarkFlagRequired("type")
+	workflowCostCmd.MarkFlagRequired("namespace")
+	workflowCostCmd.MarkFlagRequired("address")
+
+	rootCmd.AddCommand(workflowCostCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
@@ -104,6 +142,56 @@ func run(cmd *cobra.Command, args []string) error {
 		}
 	default:
 		output.PrintTable(r)
+	}
+
+	return nil
+}
+
+func runWorkflowCost(cmd *cobra.Command, args []string) error {
+	// Validate output format
+	if outputFormat != "table" && outputFormat != "json" {
+		return fmt.Errorf("invalid format '%s': must be 'table' or 'json'", outputFormat)
+	}
+
+	ctx := context.Background()
+
+	// Create Temporal client
+	c, err := workflow.NewTemporalClient(workflowAddress, workflowNamespace, apiKey)
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+
+	// List workflows by type
+	fmt.Fprintf(os.Stderr, "Fetching workflows of type '%s'...\n", workflowType)
+	executions, err := workflow.ListWorkflowsByType(ctx, c, workflowNamespace, workflowType, workflowLimit)
+	if err != nil {
+		return fmt.Errorf("failed to list workflows: %w", err)
+	}
+
+	if len(executions) == 0 {
+		fmt.Fprintf(os.Stderr, "No completed workflows found for type '%s'\n", workflowType)
+	} else {
+		fmt.Fprintf(os.Stderr, "Found %d workflows, analyzing histories...\n", len(executions))
+	}
+
+	// Analyze workflow histories
+	analyzed, err := workflow.AnalyzeWorkflows(ctx, c, executions)
+	if err != nil {
+		return fmt.Errorf("failed to analyze workflows: %w", err)
+	}
+
+	// Generate report
+	report := workflow.GenerateReport(workflowType, workflowNamespace, analyzed, actionPrice)
+
+	// Output report
+	switch outputFormat {
+	case "json":
+		if err := output.PrintWorkflowJSON(report); err != nil {
+			return fmt.Errorf("failed to output JSON: %w", err)
+		}
+	default:
+		output.PrintWorkflowTable(report)
 	}
 
 	return nil
