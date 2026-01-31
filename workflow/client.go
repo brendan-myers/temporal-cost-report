@@ -2,9 +2,11 @@ package workflow
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"os"
 
+	"github.com/brendan-myers/temporal-cost-report/config"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
 )
@@ -17,21 +19,41 @@ func (nopLogger) Info(string, ...any)  {}
 func (nopLogger) Warn(string, ...any)  {}
 func (nopLogger) Error(string, ...any) {}
 
-// NewTemporalClient creates a new Temporal client configured for Temporal Cloud.
-func NewTemporalClient(address, namespace, apiKey string) (client.Client, error) {
-	if apiKey == "" {
-		apiKey = os.Getenv("TEMPORAL_API_KEY")
-	}
-	if apiKey == "" {
-		return nil, fmt.Errorf("API key required: set TEMPORAL_API_KEY environment variable or use --api-key flag")
+// NewTemporalClient creates a new Temporal client using the provided configuration.
+// It supports both mTLS certificate authentication and API key authentication.
+// If both are configured, mTLS takes precedence.
+func NewTemporalClient(cfg config.ConnectionConfig) (client.Client, error) {
+	opts := client.Options{
+		HostPort:  cfg.Address,
+		Namespace: cfg.Namespace,
+		Logger:    nopLogger{},
 	}
 
-	c, err := client.Dial(client.Options{
-		HostPort:    address,
-		Namespace:   namespace,
-		Credentials: client.NewAPIKeyStaticCredentials(apiKey),
-		Logger:      nopLogger{},
-	})
+	if cfg.UsesMTLS() {
+		// Load mTLS certificates
+		cert, err := tls.LoadX509KeyPair(cfg.TLSCertPath, cfg.TLSKeyPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load TLS certificates: %w", err)
+		}
+
+		opts.ConnectionOptions = client.ConnectionOptions{
+			TLS: &tls.Config{
+				Certificates: []tls.Certificate{cert},
+			},
+		}
+	} else {
+		// Use API key authentication
+		apiKey := cfg.APIKey
+		if apiKey == "" {
+			apiKey = os.Getenv("TEMPORAL_API_KEY")
+		}
+		if apiKey == "" {
+			return nil, fmt.Errorf("API key required: set TEMPORAL_API_KEY environment variable or use --api-key flag")
+		}
+		opts.Credentials = client.NewAPIKeyStaticCredentials(apiKey)
+	}
+
+	c, err := client.Dial(opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Temporal client: %w", err)
 	}

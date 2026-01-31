@@ -141,37 +141,76 @@ Pricing: $50.00/M actions, $0.0420/GBh active, $0.00105/GBh retained
 
 The `workflow-cost` subcommand analyzes completed workflow executions to estimate the average cost per workflow type.
 
+### Authentication
+
+The command supports two authentication methods:
+
+1. **mTLS certificates** (recommended for Temporal Cloud)
+2. **API key** (via `--api-key` flag or `TEMPORAL_API_KEY` env var)
+
+You can also use the `--env` flag to load connection settings from your Temporal CLI configuration file (`~/.config/temporalio/temporal.yaml`).
+
 ### Usage
 
 ```bash
-# Analyze a workflow type
+# Using Temporal CLI environment (recommended)
+temporal-cost-report workflow-cost \
+  --type MyWorkflow \
+  --env cloud
+
+# Using mTLS certificates directly
 temporal-cost-report workflow-cost \
   --type MyWorkflow \
   --namespace my-namespace.abc123 \
-  --address my-namespace.abc123.tmprl.cloud:7233
+  --address my-namespace.abc123.tmprl.cloud:7233 \
+  --tls-cert-path /path/to/client.crt \
+  --tls-key-path /path/to/client.key
 
-# Sample more workflows
+# Using API key authentication
 temporal-cost-report workflow-cost \
-  --type OrderProcessingWorkflow \
-  --namespace prod.abc123 \
-  --address prod.abc123.tmprl.cloud:7233 \
+  --type MyWorkflow \
+  --namespace my-namespace.abc123 \
+  --address my-namespace.abc123.tmprl.cloud:7233 \
+  --api-key your-api-key
+
+# Using environment with flag overrides
+temporal-cost-report workflow-cost \
+  --type MyWorkflow \
+  --env cloud \
   --limit 500
 
 # Output as JSON
 temporal-cost-report workflow-cost \
   --type MyWorkflow \
-  --namespace my-namespace.abc123 \
-  --address my-namespace.abc123.tmprl.cloud:7233 \
+  --env cloud \
   --format json
 ```
+
+### Temporal CLI Environment
+
+If you have the Temporal CLI configured, you can use the `--env` flag to load connection settings from `~/.config/temporalio/temporal.yaml`:
+
+```yaml
+env:
+    cloud:
+        address: my-namespace.abc123.tmprl.cloud:7233
+        namespace: my-namespace.abc123
+        tls-cert-path: /path/to/client.crt
+        tls-key-path: /path/to/client.key
+```
+
+Command-line flags override values from the environment, allowing you to use an environment as a base configuration while customizing specific options.
 
 ### Flags
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--type` | string | (required) | Workflow type name to analyze |
-| `--namespace` | string | (required) | Full namespace (e.g., `my-namespace.abc123`) |
-| `--address` | string | (required) | Temporal Cloud address (e.g., `my-namespace.abc123.tmprl.cloud:7233`) |
+| `--env` | string | | Temporal CLI environment name from `~/.config/temporalio/temporal.yaml` |
+| `--namespace` | string | | Full namespace (e.g., `my-namespace.abc123`) |
+| `--address` | string | | Temporal Cloud address (e.g., `my-namespace.abc123.tmprl.cloud:7233`) |
+| `--tls-cert-path` | string | | Path to TLS certificate file for mTLS authentication |
+| `--tls-key-path` | string | | Path to TLS private key file for mTLS authentication |
 | `--api-key` | string | | Temporal Cloud API key (defaults to `TEMPORAL_API_KEY` env var) |
 | `--action-price` | float | 50.0 | Price per million actions (USD) |
 | `--limit` | int | 100 | Maximum workflow executions to sample |

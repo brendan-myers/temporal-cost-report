@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/brendan-myers/temporal-cost-report/client"
+	"github.com/brendan-myers/temporal-cost-report/config"
 	"github.com/brendan-myers/temporal-cost-report/output"
 	"github.com/brendan-myers/temporal-cost-report/report"
 	"github.com/brendan-myers/temporal-cost-report/workflow"
@@ -35,6 +36,9 @@ var (
 	workflowNamespace string
 	workflowAddress   string
 	workflowLimit     int
+	workflowEnv       string
+	tlsCertPath       string
+	tlsKeyPath        string
 )
 
 func main() {
@@ -81,16 +85,17 @@ signals, child workflows, etc.) to calculate costs.`,
 
 	workflowCostCmd.Flags().SortFlags = false
 	workflowCostCmd.Flags().StringVar(&workflowType, "type", "", "Workflow type name to analyze (required)")
-	workflowCostCmd.Flags().StringVar(&workflowNamespace, "namespace", "", "Full namespace (e.g., my-namespace.abc123) (required)")
-	workflowCostCmd.Flags().StringVar(&workflowAddress, "address", "", "Temporal Cloud address (e.g., my-namespace.abc123.tmprl.cloud:7233) (required)")
+	workflowCostCmd.Flags().StringVar(&workflowEnv, "env", "", "Temporal CLI environment name from ~/.config/temporalio/temporal.yaml")
+	workflowCostCmd.Flags().StringVar(&workflowNamespace, "namespace", "", "Full namespace (e.g., my-namespace.abc123)")
+	workflowCostCmd.Flags().StringVar(&workflowAddress, "address", "", "Temporal Cloud address (e.g., my-namespace.abc123.tmprl.cloud:7233)")
+	workflowCostCmd.Flags().StringVar(&tlsCertPath, "tls-cert-path", "", "Path to TLS certificate file for mTLS authentication")
+	workflowCostCmd.Flags().StringVar(&tlsKeyPath, "tls-key-path", "", "Path to TLS private key file for mTLS authentication")
 	workflowCostCmd.Flags().StringVar(&apiKey, "api-key", "", "Temporal Cloud API key (defaults to TEMPORAL_API_KEY env var)")
 	workflowCostCmd.Flags().Float64Var(&actionPrice, "action-price", defaultActionPrice, "Price per million actions (USD)")
 	workflowCostCmd.Flags().IntVar(&workflowLimit, "limit", 100, "Max workflow executions to sample")
 	workflowCostCmd.Flags().StringVar(&outputFormat, "format", "table", "Output format: table or json")
 
 	workflowCostCmd.MarkFlagRequired("type")
-	workflowCostCmd.MarkFlagRequired("namespace")
-	workflowCostCmd.MarkFlagRequired("address")
 
 	rootCmd.AddCommand(workflowCostCmd)
 
@@ -153,10 +158,37 @@ func runWorkflowCost(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid format '%s': must be 'table' or 'json'", outputFormat)
 	}
 
+	// Build connection config from flags and environment
+	var env *config.Environment
+	if workflowEnv != "" {
+		var err error
+		env, err = config.LoadEnvironment(workflowEnv)
+		if err != nil {
+			return fmt.Errorf("failed to load environment '%s': %w", workflowEnv, err)
+		}
+	}
+
+	// Create flags config for merging
+	flagsConfig := config.ConnectionConfig{
+		Address:     workflowAddress,
+		Namespace:   workflowNamespace,
+		TLSCertPath: tlsCertPath,
+		TLSKeyPath:  tlsKeyPath,
+		APIKey:      apiKey,
+	}
+
+	// Merge environment with flag overrides
+	cfg := config.MergeConfig(env, flagsConfig)
+
+	// Validate the final configuration
+	if err := cfg.Validate(); err != nil {
+		return err
+	}
+
 	ctx := context.Background()
 
 	// Create Temporal client
-	c, err := workflow.NewTemporalClient(workflowAddress, workflowNamespace, apiKey)
+	c, err := workflow.NewTemporalClient(cfg)
 	if err != nil {
 		return err
 	}
